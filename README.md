@@ -1,26 +1,35 @@
-# Empire RAG – Insurance Policy Intelligence Engine
+# Insurance Policy Intelligence Engine
 
-This repo contains two main parts:
+> RAG-powered agentic AI that reads your insurance documents and answers questions about them in plain English.
 
-- **Backend** – Cloudflare Worker (Python) exposed at your Workers URL
-- **Frontend** – React + TypeScript + Vite dashboard in `dashboard/`
+![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-Current production backend URL:
+## What is this?
 
-- `https://empire-rag-dashboard.pages.dev`
+Upload an insurance policy document (PDF or text), then ask it questions — "what's my deductible?", "summarize this," "does this cover water damage?" — and get answers grounded in the actual document instead of generic advice. The backend runs as a Cloudflare Worker, retrieving relevant chunks of the uploaded document and feeding them to an LLM (RAG) so answers stay tied to what's actually in the policy.
+
+This repo has two parts:
+
+- **Backend** — Cloudflare Worker (Python), handles document upload, retrieval, and chat
+- **Frontend** — React + TypeScript + Vite dashboard (`dashboard/`) for uploading files and chatting
+
+Live deployment:
+
+- Frontend: `https://empire-rag-dashboard.pages.dev`
+- Backend: `https://empire-rag-backend.soorya220104.workers.dev`
 
 ---
 
-## 1. Project Structure
+## Project Structure
 
-- `entry.py` – Cloudflare Worker backend (Python Workers)
-- `wrangler.toml` – Cloudflare Worker config (bindings, name, etc.)
-- `dashboard/` – React + Vite UI for uploading files and chatting
-- `data.txt` – Sample data (not required)
+- `entry.py` — Cloudflare Worker backend (Python Workers)
+- `wrangler.toml` — Cloudflare Worker config (bindings, name, etc.)
+- `dashboard/` — React + Vite UI for uploading files and chatting
+- `data.txt` — Sample data (not required)
 
 ---
 
-## 2. Prerequisites
+## Prerequisites
 
 - Node.js (LTS) and npm installed
 - Cloudflare account
@@ -38,60 +47,45 @@ npx wrangler login
 
 ---
 
-## 3. Run Everything **Locally** (Backend in Cloud, Frontend on Your Machine)
+## Run Locally (Backend in Cloud, Frontend on Your Machine)
 
-The backend is already deployed and running in the cloud at:
-
-- `https://empire-rag-backend.soorya220104.workers.dev`
-
-The frontend just needs to run locally and talk to that URL.
-
-### Step 1 – Install frontend dependencies
+The backend is already deployed and running in the cloud at
+`https://empire-rag-backend.soorya220104.workers.dev`. The frontend just needs to run locally and talk to that URL.
 
 ```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine/dashboard"
+git clone https://github.com/Soorya2201/Insurance-Policy-Intelligence-Engine.git
+cd Insurance-Policy-Intelligence-Engine/dashboard
 npm install
-```
-
-### Step 2 – Start the frontend dev server
-
-```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine/dashboard"
 npm run dev
 ```
 
-Then open the printed URL (usually `http://localhost:5173`).
-
-You can now:
+Then open the printed URL (usually `http://localhost:5173`). You can now:
 
 1. Upload a PDF or text file using the upload buttons
 2. Ask questions in the chat box (e.g. "summarize this" / "give me a glimpse of the document")
 
-The frontend will call these cloud endpoints:
+The frontend calls these cloud endpoints:
 
 - `POST https://empire-rag-backend.soorya220104.workers.dev/api/upload`
 - `POST https://empire-rag-backend.soorya220104.workers.dev/api/chat`
 
 ---
 
-## 4. Deploy / Update the **Backend** (Cloudflare Worker)
+## Deploy / Update the Backend (Cloudflare Worker)
 
-From the repo **root**:
+From the repo root:
 
 ```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine"
-
-# Deploy (or redeploy) the Worker
 npx wrangler deploy
 ```
 
-Check that it is online:
+Check that it's online:
 
 ```bash
 curl https://empire-rag-backend.soorya220104.workers.dev/health
 ```
 
-You should see:
+Expected response:
 
 ```json
 {"status": "ok", "message": "Backend is online"}
@@ -99,65 +93,38 @@ You should see:
 
 ---
 
-## 5. Deploy the **Frontend** to Cloudflare Pages
-
-The frontend is a static Vite app and should be deployed as a Pages project.
-
-### Step 1 – Build the frontend
+## Deploy the Frontend to Cloudflare Pages
 
 ```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine/dashboard"
+cd dashboard
 npm run build
-```
-
-This creates the `dist/` folder.
-
-### Step 2 – Deploy `dist/` with Wrangler Pages
-
-```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine/dashboard"
 npx wrangler pages deploy dist --project-name empire-rag-dashboard
 ```
 
-Wrangler will print a URL like:
-
-- `https://empire-rag-dashboard.pages.dev`
-
-Visit that URL – it will use the same backend URL
-`https://empire-rag-backend.soorya220104.workers.dev`.
+This builds the static Vite app and deploys the `dist/` folder. Wrangler will print a URL like `https://empire-rag-dashboard.pages.dev`, which uses the same backend URL above.
 
 > If you ever change the Worker URL, update it in `dashboard/src/App.tsx` where `BACKEND_URL` is defined.
 
 ---
 
-## 6. Quick Command Cheat Sheet
+## Quick Command Cheat Sheet
 
-**Backend (Worker):**
+**Backend (Worker), from repo root:**
 
 ```bash
-# From repo root
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine"
 npx wrangler deploy
 ```
 
-**Frontend – dev:**
+**Frontend, from `dashboard/`:**
 
 ```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine/dashboard"
 npm install        # once
-npm run dev
+npm run dev         # local dev server
+npm run build && npx wrangler pages deploy dist --project-name empire-rag-dashboard   # build + deploy
 ```
 
-**Frontend – build & deploy to Pages:**
+---
 
-```bash
-cd "/Users/soorya/Desktop/Projects /insurance_policy_intelligence_engine/dashboard"
-npm run build
-npx wrangler pages deploy dist --project-name empire-rag-dashboard
-```
+## License
 
-With these commands you can:
-
-- Run the UI locally against the live cloud backend
-- Redeploy backend code quickly with `npx wrangler deploy`
-- Host the frontend itself on Cloudflare Pages for a fully cloud-hosted app.
+MIT — see [LICENSE](LICENSE) for details.
