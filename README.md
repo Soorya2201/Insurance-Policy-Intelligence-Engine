@@ -1,130 +1,75 @@
 # Insurance Policy Intelligence Engine
 
-> RAG-powered agentic AI that reads your insurance documents and answers questions about them in plain English.
+**Upload an insurance policy (PDF or text) and ask questions about it in plain English, from a React dashboard on Cloudflare Pages backed by a Python Cloudflare Worker at the edge.**
 
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-## What is this?
+Live: [empire-rag-dashboard.pages.dev](https://empire-rag-dashboard.pages.dev) · API health: [`/health`](https://empire-rag-backend.soorya220104.workers.dev/health)
 
-Upload an insurance policy document (PDF or text), then ask it questions — "what's my deductible?", "summarize this," "does this cover water damage?" — and get answers grounded in the actual document instead of generic advice. The backend runs as a Cloudflare Worker, retrieving relevant chunks of the uploaded document and feeding them to an LLM (RAG) so answers stay tied to what's actually in the policy.
+## What it does
 
-This repo has two parts:
+1. **Client-side document parsing.** PDFs are parsed in the browser with PDF.js, so the raw file never leaves the user's machine; only the extracted text is sent.
+2. **Edge ingestion.** `POST /api/upload` stores the document text in the Worker.
+3. **Grounded answers.** `POST /api/chat` splits each document into paragraphs, retrieves the ones that match the question's terms, and returns them with the **source filename**. Answers are always excerpts of the actual policy, never generated text, so the system can't hallucinate coverage that isn't in the document.
 
-- **Backend** — Cloudflare Worker (Python), handles document upload, retrieval, and chat
-- **Frontend** — React + TypeScript + Vite dashboard (`dashboard/`) for uploading files and chatting
+## Architecture
 
-Live deployment:
-
-- Frontend: `https://empire-rag-dashboard.pages.dev`
-- Backend: `https://empire-rag-backend.soorya220104.workers.dev`
-
----
-
-## Project Structure
-
-- `entry.py` — Cloudflare Worker backend (Python Workers)
-- `wrangler.toml` — Cloudflare Worker config (bindings, name, etc.)
-- `dashboard/` — React + Vite UI for uploading files and chatting
-- `data.txt` — Sample data (not required)
-
----
-
-## Prerequisites
-
-- Node.js (LTS) and npm installed
-- Cloudflare account
-- Wrangler CLI:
-
-```bash
-npm install -g wrangler
+```
+React + TypeScript dashboard (Cloudflare Pages)
+  │  PDF.js text extraction in the browser
+  │
+  ├── POST /api/upload  {filename, text}  ─┐
+  ├── POST /api/chat    {query}           ─┤──► Python Cloudflare Worker (entry.py)
+  └── GET  /health                        ─┘      paragraph split → keyword retrieval → cited excerpts
 ```
 
-Log in once:
+| Path | Role |
+|---|---|
+| `entry.py` | Worker: routing, CORS, upload, retrieval, cited answers |
+| `wrangler.toml` | Worker config (Python runtime; Workers AI and Vectorize bindings declared) |
+| `dashboard/` | React + TypeScript + Vite + Tailwind UI: upload, PDF parsing, chat, source display |
 
-```bash
-npx wrangler login
-```
+## Current scope and roadmap
 
----
+Retrieval is keyword-based over an in-memory store, so documents last only for the lifetime of a Worker instance. The Workers AI and Vectorize bindings are already declared in `wrangler.toml` for the next step:
 
-## Run Locally (Backend in Cloud, Frontend on Your Machine)
+- [ ] Chunk and embed documents with Workers AI (`@cf/baai/bge-base-en-v1.5`) into Vectorize
+- [ ] Top-k semantic retrieval in place of keyword matching
+- [ ] Llama 3 on Workers AI to synthesize an answer from retrieved chunks, with citations
+- [ ] Persist documents in R2/KV instead of instance memory
+- [ ] Compare plans across several uploaded policies
 
-The backend is already deployed and running in the cloud at
-`https://empire-rag-backend.soorya220104.workers.dev`. The frontend just needs to run locally and talk to that URL.
+## Run it
 
-```bash
-git clone https://github.com/Soorya2201/Insurance-Policy-Intelligence-Engine.git
-cd Insurance-Policy-Intelligence-Engine/dashboard
-npm install
-npm run dev
-```
-
-Then open the printed URL (usually `http://localhost:5173`). You can now:
-
-1. Upload a PDF or text file using the upload buttons
-2. Ask questions in the chat box (e.g. "summarize this" / "give me a glimpse of the document")
-
-The frontend calls these cloud endpoints:
-
-- `POST https://empire-rag-backend.soorya220104.workers.dev/api/upload`
-- `POST https://empire-rag-backend.soorya220104.workers.dev/api/chat`
-
----
-
-## Deploy / Update the Backend (Cloudflare Worker)
-
-From the repo root:
-
-```bash
-npx wrangler deploy
-```
-
-Check that it's online:
-
-```bash
-curl https://empire-rag-backend.soorya220104.workers.dev/health
-```
-
-Expected response:
-
-```json
-{"status": "ok", "message": "Backend is online"}
-```
-
----
-
-## Deploy the Frontend to Cloudflare Pages
+**Frontend** (talks to the deployed Worker):
 
 ```bash
 cd dashboard
-npm run build
+npm install
+npm run dev          # http://localhost:5173
+```
+
+**Backend:**
+
+```bash
+npm install -g wrangler && wrangler login
+npx wrangler deploy                                           # from the repo root
+curl https://empire-rag-backend.soorya220104.workers.dev/health
+```
+
+**Deploy the dashboard:**
+
+```bash
+cd dashboard && npm run build
 npx wrangler pages deploy dist --project-name empire-rag-dashboard
 ```
 
-This builds the static Vite app and deploys the `dist/` folder. Wrangler will print a URL like `https://empire-rag-dashboard.pages.dev`, which uses the same backend URL above.
+If the Worker URL changes, update `BACKEND_URL` in `dashboard/src/App.tsx`. More commands are in [`COMMANDS.md`](COMMANDS.md) and [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md).
 
-> If you ever change the Worker URL, update it in `dashboard/src/App.tsx` where `BACKEND_URL` is defined.
+## Tech stack
 
----
-
-## Quick Command Cheat Sheet
-
-**Backend (Worker), from repo root:**
-
-```bash
-npx wrangler deploy
-```
-
-**Frontend, from `dashboard/`:**
-
-```bash
-npm install        # once
-npm run dev         # local dev server
-npm run build && npx wrangler pages deploy dist --project-name empire-rag-dashboard   # build + deploy
-```
-
----
+Cloudflare Workers (Python runtime) · Cloudflare Pages · React · TypeScript · Vite · Tailwind CSS · PDF.js
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
