@@ -1,6 +1,6 @@
 # Quick Command Reference
 
-## 🏠 Local Development
+## Local Development
 
 ### Run Dashboard (Frontend) Locally
 ```bash
@@ -36,7 +36,7 @@ npm run dev
 
 ---
 
-## ☁️ Cloudflare Deployment
+## Cloudflare Deployment
 
 ### Deploy Backend to Cloudflare
 ```bash
@@ -68,7 +68,7 @@ curl https://empire-rag-backend.soorya220104.workers.dev/health
 
 ---
 
-## 🔍 Quick Checks
+## Quick Checks
 
 ### Check if logged in to Cloudflare
 ```bash
@@ -86,7 +86,7 @@ Current value: `https://empire-rag-backend.soorya220104.workers.dev`
 
 ---
 
-## 📝 Typical Workflow
+## Typical Workflow
 
 ### For Local Testing:
 1. **Terminal 1**: `npx wrangler dev` (backend)

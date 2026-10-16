@@ -1,6 +1,6 @@
 # Deployment Guide - Fix Upload Issues
 
-## 🔧 Fixes Applied
+## Fixes Applied
 
 1. **Backend JSON Parsing**: Fixed how the backend reads and parses request bodies
 2. **Error Handling**: Added comprehensive error handling with detailed messages
@@ -8,7 +8,7 @@
 4. **Health Check**: Added `/health` endpoint to test backend connectivity
 5. **Frontend Error Display**: Improved error messages to show actual backend errors
 
-## 🚀 Deploy the Backend
+## Deploy the Backend
 
 ### Step 1: Navigate to Project Root
 ```bash
@@ -38,7 +38,7 @@ curl -X POST https://empire-rag-backend.soorya220104.workers.dev/api/upload \
   -d '{"filename":"test.txt","text":"test"}'
 ```
 
-## 🧪 Test Locally (Optional)
+## Test Locally (Optional)
 
 You can test the backend locally before deploying:
 
@@ -50,7 +50,7 @@ npx wrangler dev
 # Update BACKEND_URL in dashboard/src/App.tsx temporarily to test
 ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Error: "Failed to fetch"
 
@@ -74,7 +74,7 @@ This means the backend code has a runtime error. Check:
 3. Click on your worker
 4. Go to "Logs" tab to see real-time errors
 
-## ✅ Verification Steps
+## Verification Steps
 
 1. **Test Health Endpoint**: Visit `https://empire-rag-backend.soorya220104.workers.dev/health` in browser
    - Should return: `{"status":"ok","message":"Backend is online"}`
@@ -82,13 +82,13 @@ This means the backend code has a runtime error. Check:
 2. **Test Frontend Connection**: 
    - Open your frontend app
    - Check browser console (F12)
-   - Should see: "✅ Backend connection successful"
+ - Should see: " Backend connection successful"
 
 3. **Test File Upload**:
    - Try uploading your lease document
    - Check console for detailed error messages if it fails
 
-## 📝 Current Backend URL
+## Current Backend URL
 
 Make sure this matches your deployed worker:
 ```
@@ -98,7 +98,7 @@ https://empire-rag-backend.soorya220104.workers.dev
 If your worker has a different URL, update it in:
 - `dashboard/src/App.tsx` (line 5)
 
-## 🆘 Still Having Issues?
+## Still Having Issues?
 
 1. Check browser console (F12) for detailed error messages
 2. Check Cloudflare Workers logs
